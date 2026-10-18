@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  db_ev:
+    image: pgvector/pgvector:pg16
+    container_name: db_ev
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend_ev:
+    container_name: backend_ev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db_ev:
+        condition: service_healthy
+
+  frontend_ev:
+    container_name: frontend_ev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:5173"
+    volumes:
+      - ./frontend/EV-frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend_ev
+    
+volumes:
+  db_data:

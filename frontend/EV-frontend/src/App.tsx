@@ -1,122 +1,104 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Importaciones figuradas de nuestros componentes
+import { MIC_STATES, type MicState } from './domains/chatbot/components/MicrophoneButton/types';
+import { MicrophoneButton } from './domains/chatbot/components/MicrophoneButton/MicrophoneButton';
+import { CHAT_PHASES, type ChatPhase } from './domains/chatbot/components/ChatMessage/types';
+import { StatusMessage } from './domains/chatbot/components/StatusMessage/StatusMessage';
+import { AudioWave } from './domains/chatbot/components/VoiceWave/VoiceWave';
+import { ChatMessage } from './domains/chatbot/components/ChatMessage/ChatMessage';
+import { ConfigurationButton } from './domains/chatbot/components/ConfigurationButton/ConfigurationButton';
+
+export function App() {
+  const [micState, setMicState] = useState<MicState>(MIC_STATES.READY);
+  const [chatPhase, setChatPhase] = useState<ChatPhase>(CHAT_PHASES.IDLE);
+  const [isOnline] = useState(true);
+
+  // Función temporal para ir probando cómo reaccionan los componentes
+  const handleMicClick = () => {
+    if (micState === MIC_STATES.READY) {
+      setMicState(MIC_STATES.LISTENING);
+      setChatPhase(CHAT_PHASES.LISTENING);
+    } else {
+      setMicState(MIC_STATES.READY);
+      setChatPhase(CHAT_PHASES.IDLE);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div 
+      style={{
+        display: 'grid',
+        // Creamos 3 columnas: Las laterales ocuparán un espacio fijo/proporcional, la central coge el resto
+        gridTemplateColumns: 'minmax(150px, 1fr) 3fr minmax(150px, 1fr)', 
+        height: '100vh',
+        width: '100vw',
+        backgroundColor: '#000000', // Aplicando el fondo negro puro de tu fase de diseño
+        color: '#ffffff',
+        overflow: 'hidden',
+        boxSizing: 'border-box'
+      }}
+    >
+      {/* =========================================
+          BARRA LATERAL IZQUIERDA
+          ========================================= */}
+      <aside 
+        style={{
+          padding: '2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start', // Alinea el mensaje de estado a la izquierda
+          borderRight: '1px solid #1a1a1a' // Borde temporal sutil para delimitar la caja
+        }}
+      >
+        <StatusMessage isOnline={isOnline} />
+      </aside>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* =========================================
+          COLUMNA CENTRAL
+          ========================================= */}
+      <main 
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between', // Reparte los 3 bloques: arriba, centro y abajo[cite: 6]
+          alignItems: 'center',
+          padding: '2rem',
+          height: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        {/* Bloque Superior: VoiceWave[cite: 6] */}
+        <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          {/* Le pasamos true si el micro NO está en estado READY */}
+          <AudioWave isActive={micState !== MIC_STATES.READY} /> 
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* Bloque Central: ChatMessage[cite: 6] */}
+        <div style={{ width: '100%', marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+          <ChatMessage phase={chatPhase} text="" />
+        </div>
+
+        {/* Bloque Inferior: MicrophoneButton[cite: 6] */}
+        <div style={{ paddingBottom: '2rem' }}>
+          <MicrophoneButton currentState={micState} onClick={handleMicClick} />
+        </div>
+      </main>
+
+      {/* =========================================
+          BARRA LATERAL DERECHA[cite: 6]
+          ========================================= */}
+      <aside 
+        style={{
+          padding: '2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end', // Alinea el botón de configuración a la derecha
+          borderLeft: '1px solid #1a1a1a' // Borde temporal sutil para delimitar la caja
+        }}
+      >
+        <ConfigurationButton onClick={() => alert('Aquí se abrirá el modal superpuesto')} />
+      </aside>
+    </div>
+  );
 }
-
-export default App

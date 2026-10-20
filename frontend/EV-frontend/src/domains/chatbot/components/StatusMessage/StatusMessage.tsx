@@ -8,20 +8,14 @@ export function StatusMessage({ isOnline }: StatusMessageProps) {
     <div 
       aria-live="polite"
       aria-label={statusAriaLabel}
-      style={{ display: 'flex', alignItems: 'center', gap: '8px' }} // Layout básico
+      className="ev-status-pill"
     >
       {/* Indicador visual (punto semántico) */}
       <span 
         aria-hidden="true" 
-        style={{
-          width: '10px',
-          height: '10px',
-          borderRadius: '50%',
-          backgroundColor: isOnline ? '#22c55e' : '#ef4444', // Verde/Rojo genérico temporal
-          display: 'inline-block'
-        }}
+        className={`${isOnline ? 'ev-status-dot-online' : 'ev-status-dot-offline'}`}
       />
-      <span>{statusText}</span>
+      <span className="ev-status-text">{statusText}</span>
     </div>
   );
 }

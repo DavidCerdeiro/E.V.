@@ -21,17 +21,9 @@ export function ChatMessage({ phase, text = '' }: ChatMessageProps) {
   return (
     <div 
       aria-live="assertive" 
-      style={{
-        width: '100%',
-        maxWidth: '600px', // Limita el ancho para mejor legibilidad
-        height: '150px',   // Altura fija para no desplazar el botón de micrófono inferior
-        overflowY: 'auto', // Scroll automático si el texto de la IA es muy largo
-        textAlign: 'center',
-        padding: '1rem',
-        boxSizing: 'border-box'
-      }}
+      className="ev-chat-container"
     >
-      <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+      <p className={`ev-chat-text-${phase}`}>
         {renderContent()}
       </p>
     </div>

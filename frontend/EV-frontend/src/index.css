@@ -1,15 +1,128 @@
-/* src/index.css */
+@import "tailwindcss";
+
+@theme {
+  /* Paleta Simbionte nativa para Tailwind v4 */
+  --color-symbiote-black: #000000;
+  --color-symbiote-surface: #0a0a0a;
+  --color-symbiote-red: #e50000;
+  --color-symbiote-white: #ffffff;
+  --color-symbiote-muted: #a1a1aa;
+  
+  /* Animaciones personalizadas */
+  --animate-spider-sense: spider-sense 1.5s infinite;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@keyframes spider-sense {
+  0% { box-shadow: 0 0 0 0 rgba(229, 0, 0, 0.7); }
+  70% { box-shadow: 0 0 0 25px rgba(229, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 0, 0, 0); }
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  background-color: #000000; /* Fondo negro puro de tu diseño */
-  overflow: hidden; /* Evita cualquier barra de scroll general */
-  font-family: system-ui, -apple-system, sans-serif; /* Tipografía limpia por defecto */
+  background-color: var(--color-symbiote-black);
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Opcional: Esto ayuda a que el box-sizing sea predecible en toda la app */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+@layer components {
+  /* =========================================
+     ESTILOS DE LAYOUT (MainLayout.tsx)
+     ========================================= */
+  .ev-layout {
+    @apply h-screen w-screen text-symbiote-white overflow-hidden grid grid-cols-[minmax(150px,1fr)_3fr_minmax(150px,1fr)] selection:bg-symbiote-red selection:text-white font-sans;
+    
+    /* Degradado radial: Nace abajo en el centro con un rojo muy tenue y funde a negro puro */
+    background: radial-gradient(circle at 50% 100%, rgba(229, 0, 0, 0.08) 0%, #000000 60%);
+  }
+
+  .ev-sidebar-left {
+    @apply p-8 flex flex-col justify-between items-start h-full;
+  }
+
+  .ev-sidebar-right {
+    @apply p-8 flex flex-col items-end;
+  }
+
+  .ev-main-column {
+    @apply h-full flex flex-col justify-between items-center p-8;
+  }
+
+  /* =========================================
+     BOTÓN DE MICRÓFONO (MicrophoneButton.tsx)
+     ========================================= */
+  .ev-mic-base {
+    /* Eliminado shadow-lg de aquí para que no pise el brillo */
+    @apply px-8 py-4 rounded-full font-bold text-lg tracking-wide transition-all duration-300 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-symbiote-black flex items-center justify-center gap-2;
+  }
+
+  .ev-mic-ready {
+    @apply bg-symbiote-white text-symbiote-black hover:bg-gray-200;
+  }
+
+  .ev-mic-listening {
+    /* Aquí aplicamos el nuevo efecto rojo circular que respira */
+    @apply bg-symbiote-red text-symbiote-white animate-spider-sense;
+  }
+
+  .ev-mic-speaking {
+    @apply bg-transparent border-2 border-symbiote-red text-symbiote-red hover:bg-symbiote-red hover:text-symbiote-white focus:ring-symbiote-red rounded-md!; 
+  }
+
+  /* =========================================
+     VENTANA DE CHAT (ChatMessage.tsx)
+     ========================================= */
+  .ev-chat-container {
+    @apply w-full max-w-2xl h-40 overflow-y-auto text-center px-4;
+  }
+
+  .ev-chat-text-idle {
+    @apply text-symbiote-muted text-xl font-light;
+  }
+
+  .ev-chat-text-listening {
+    @apply text-symbiote-red animate-pulse;
+  }
+
+  .ev-chat-text-thinking {
+    @apply text-symbiote-muted italic;
+  }
+
+  .ev-chat-text-speaking {
+    @apply text-symbiote-white text-2xl font-medium leading-relaxed drop-shadow-md;
+  }
+
+  /* =========================================
+     MENSAJE DE ESTADO (StatusMessage.tsx)
+     ========================================= */
+  .ev-status-pill {
+    @apply flex items-center gap-3 px-4 py-2 rounded-full bg-symbiote-surface border border-[#1a1a1a] shadow-sm;
+  }
+
+  .ev-status-dot-online {
+    @apply w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)];
+  }
+
+  .ev-status-dot-offline {
+    @apply w-2.5 h-2.5 rounded-full bg-symbiote-red shadow-[0_0_8px_rgba(229,0,0,0.6)];
+  }
+
+  .ev-status-text {
+    @apply text-sm font-medium tracking-wide text-symbiote-muted uppercase;
+  }
+
+  /* =========================================
+     BOTÓN DE CONFIGURACIÓN (ConfigurationButton.tsx)
+     ========================================= */
+  .ev-icon-btn {
+    @apply p-3 rounded-xl text-symbiote-muted hover:text-symbiote-white hover:bg-symbiote-surface transition-colors duration-200 outline-none focus:ring-1 focus:ring-symbiote-muted flex items-center justify-center gap-2;
+  }
 }

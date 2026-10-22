@@ -10,11 +10,44 @@ export function App() {
   const [micState, setMicState] = useState<MicState>(MIC_STATES.READY);
   const [chatPhase, setChatPhase] = useState<ChatPhase>(CHAT_PHASES.IDLE);
   const [isOnline] = useState(true);
+  const [aiResponse, setAiResponse] = useState<string>('');
+
+  const testBackendConnection = async () => {
+    try {
+      setChatPhase(CHAT_PHASES.THINKING); // Opcional: mostrar estado de "pensando"[cite: 2]
+      
+      const response = await fetch('http://localhost:8000/chat/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userMessage: "Hola backend, soy el frontend" }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setAiResponse(data.iaResponse); // Guardamos la respuesta según tu Response DTO
+      console.log("Respuesta del backend:", data.iaResponse);
+      setChatPhase(CHAT_PHASES.SPEAKING);
+      
+    } catch (error) {
+      console.error("Error al conectar con el backend:", error);
+      setAiResponse("Error de conexión");
+      setChatPhase(CHAT_PHASES.IDLE);
+    }
+  };
 
   const handleMicClick = () => {
     if (micState === MIC_STATES.READY) {
       setMicState(MIC_STATES.LISTENING);
       setChatPhase(CHAT_PHASES.LISTENING);
+      
+      // Llamamos al backend simulando que ya transcribimos el audio
+      testBackendConnection();
+      
     } else {
       setMicState(MIC_STATES.READY);
       setChatPhase(CHAT_PHASES.IDLE);

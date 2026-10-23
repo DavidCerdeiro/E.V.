@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import chat_router
+from app.core.config import settings
 
 app = FastAPI(
-    title="Asistente E.V. API",
-    description="Backend para el asistente de IA",
-    version="0.1.0"
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION
 )
 
 app.add_middleware(

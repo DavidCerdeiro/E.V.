@@ -21,7 +21,7 @@ export function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userMessage: "Hola backend, soy el frontend" }),
+        body: JSON.stringify({ user_message: "Hola E.V., esto es un mensaje de prueba desde el frontend" }),
       });
 
       if (!response.ok) {
@@ -29,8 +29,8 @@ export function App() {
       }
 
       const data = await response.json();
-      setAiResponse(data.iaResponse); // Guardamos la respuesta según tu Response DTO
-      console.log("Respuesta del backend:", data.iaResponse);
+      setAiResponse(data.model_response); // Guardamos la respuesta según tu Response DTO
+      console.log("Respuesta del backend:", data.model_response);
       setChatPhase(CHAT_PHASES.SPEAKING);
       
     } catch (error) {

@@ -10,5 +10,7 @@ authors = [{ name = "David Cerdeiro Gallardo", email = "davidcergall22@gmail.com
 
 dependencies = [
     "fastapi",
-    "uvicorn"
+    "uvicorn",
+    "pydantic-settings",
+    "langchain-groq"
 ]

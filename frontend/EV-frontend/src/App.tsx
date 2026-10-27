@@ -1,62 +1,103 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import 'regenerator-runtime/runtime';
 import { MIC_STATES, type MicState } from './domains/chatbot/components/MicrophoneButton/types';
 import { CHAT_PHASES, type ChatPhase } from './domains/chatbot/components/ChatMessage/types';
-
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { LeftSidebar } from './domains/chatbot/layouts/LeftSidebar';
 import { RightSidebar } from './domains/chatbot/layouts/RightSidebar';
 import { InteractionCenter } from './domains/chatbot/layouts/InteractionCenter';
 
 export function App() {
+  const { 
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition 
+  } = useSpeechRecognition();  // Hook para manejar la transcripción de voz
+
   const [micState, setMicState] = useState<MicState>(MIC_STATES.READY);
   const [chatPhase, setChatPhase] = useState<ChatPhase>(CHAT_PHASES.IDLE);
   const [isOnline] = useState(true);
   const [aiResponse, setAiResponse] = useState<string>('');
 
-  const testBackendConnection = async () => {
+  useEffect(() => {
+    if (listening) {
+      setMicState(MIC_STATES.LISTENING);
+      setChatPhase(CHAT_PHASES.LISTENING);
+    } else if (!listening && transcript) {
+      // Si se apagó y hay transcripción, enviamos al backend
+      setMicState(MIC_STATES.READY);
+      sendToBackend(transcript);
+    } else if (!listening && !transcript && chatPhase === CHAT_PHASES.LISTENING) {
+      // Si se apagó pero no se detectó voz, volvemos a reposo
+      setMicState(MIC_STATES.READY);
+      setChatPhase(CHAT_PHASES.IDLE);
+    }
+  }, [listening]);
+
+  // 2. Función dinámica para enviar el texto transcrito
+  const sendToBackend = async (userText: string) => {
     try {
-      setChatPhase(CHAT_PHASES.THINKING); // Opcional: mostrar estado de "pensando"[cite: 2]
+      setChatPhase(CHAT_PHASES.THINKING);
+      setAiResponse('');
       
       const response = await fetch('http://localhost:8000/chat/response', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_message: "Hola E.V., esto es un mensaje de prueba desde el frontend" }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_message: userText }),
       });
 
+      
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
       const data = await response.json();
-      setAiResponse(data.model_response); // Guardamos la respuesta según tu Response DTO
-      console.log("Respuesta del backend:", data.model_response);
-      setChatPhase(CHAT_PHASES.SPEAKING);
       
+      setAiResponse(data.model_response);
+
+      setChatPhase(CHAT_PHASES.SPEAKING);
+      setMicState(MIC_STATES.IA_SPEAKING); // Cambia el botón para permitir interrumpir
+      
+      // TO DO: Añadir lógica para que la IA hable usando la Web Speech API      
     } catch (error) {
       console.error("Error al conectar con el backend:", error);
-      setAiResponse("Error de conexión");
-      setChatPhase(CHAT_PHASES.IDLE);
+      setAiResponse("Error de conexión con el núcleo de E.V.");
+      setChatPhase(CHAT_PHASES.SPEAKING);
+      setMicState(MIC_STATES.READY);
     }
   };
 
+  // 3. Control del Click del Botón
   const handleMicClick = () => {
-    if (micState === MIC_STATES.READY) {
-      setMicState(MIC_STATES.LISTENING);
-      setChatPhase(CHAT_PHASES.LISTENING);
-      
-      // Llamamos al backend simulando que ya transcribimos el audio
-      testBackendConnection();
-      
-    } else {
+    if (micState === MIC_STATES.IA_SPEAKING) {
+      // Si la IA está hablando y pulsamos, la interrumpimos y volvemos a reposo
       setMicState(MIC_STATES.READY);
       setChatPhase(CHAT_PHASES.IDLE);
+      setAiResponse('');
+      return;
+    }
+
+    if (!listening) {
+      resetTranscript(); // Limpiamos transcripciones anteriores
+      setAiResponse('');
+      SpeechRecognition.startListening({ continuous: false, language: 'es-ES' });
+    } else {
+      SpeechRecognition.stopListening(); // Apagar el micro dispara el useEffect
     }
   };
 
   const openConfigModal = () => {
     alert('Abriendo el modal del dominio de configuration');
   };
+
+  if (!browserSupportsSpeechRecognition) {
+    return <div className="text-symbiote-red p-8 flex justify-center items-center h-screen">Tu navegador no soporta la Web Speech API. Abre la app en Chrome o Edge.</div>;
+  }
+
+  // 4. Determinar qué texto mostrar en pantalla
+  const displayText = chatPhase === CHAT_PHASES.LISTENING ? transcript : 
+                      chatPhase === CHAT_PHASES.SPEAKING ? aiResponse : '';
 
   return (
     <div className="ev-layout">
@@ -65,6 +106,7 @@ export function App() {
       <InteractionCenter 
         micState={micState} 
         chatPhase={chatPhase} 
+        displayText={displayText} 
         onMicClick={handleMicClick} 
       />
       

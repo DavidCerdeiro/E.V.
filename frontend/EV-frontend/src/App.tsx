@@ -19,6 +19,18 @@ export function App() {
   const [chatPhase, setChatPhase] = useState<ChatPhase>(CHAT_PHASES.IDLE);
   const [isOnline] = useState(true);
   const [aiResponse, setAiResponse] = useState<string>('');
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Este useEffect "caza" las voces de alta calidad en cuanto Edge las descarga
+  useEffect(() => {
+    const updateVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      setAvailableVoices(voices);
+    };
+
+    updateVoices(); // Intento inicial
+    window.speechSynthesis.onvoiceschanged = updateVoices; // Evento clave que avisa cuando llegan las de Azure
+  }, []);
 
   useEffect(() => {
     if (listening) {
@@ -59,7 +71,24 @@ export function App() {
       setChatPhase(CHAT_PHASES.SPEAKING);
       setMicState(MIC_STATES.IA_SPEAKING); // Cambia el botón para permitir interrumpir
       
-      // TO DO: Añadir lógica para que la IA hable usando la Web Speech API      
+      const utterThis = new SpeechSynthesisUtterance(data.model_response);
+      utterThis.lang = 'es-ES';
+            
+      utterThis.voice = availableVoices.find(voice => 
+        voice.lang.includes('es') && voice.name.includes('Natural') && voice.name.toLowerCase().includes('elvira')
+      ) 
+      // Si no encuentra a Elvira Natural, coge CUALQUIER voz "Natural" en español
+      || availableVoices.find(voice => voice.lang.includes('es') && voice.name.includes('Natural')) 
+      || availableVoices.find(voice => voice.lang.includes('es')) 
+      || null;
+      utterThis.onend = () => {
+        setMicState(MIC_STATES.READY);
+        setChatPhase(CHAT_PHASES.IDLE);
+        setAiResponse('');
+      };
+
+      window.speechSynthesis.speak(utterThis);
+
     } catch (error) {
       console.error("Error al conectar con el backend:", error);
       setAiResponse("Error de conexión con el núcleo de E.V.");
@@ -72,6 +101,8 @@ export function App() {
   const handleMicClick = () => {
     if (micState === MIC_STATES.IA_SPEAKING) {
       // Si la IA está hablando y pulsamos, la interrumpimos y volvemos a reposo
+      
+      window.speechSynthesis.cancel();
       setMicState(MIC_STATES.READY);
       setChatPhase(CHAT_PHASES.IDLE);
       setAiResponse('');
